@@ -1,5 +1,5 @@
 name: CookingUpdate
 version: '${project.version}'
-main: org.mower.cookingupdate.Main
+main: org.bosiux.cookingupdate.Main
 api-version: '1.20'
-authors: [mower]
+authors: [bosiux]

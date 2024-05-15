@@ -1,4 +1,4 @@
-package org.mower.cookingupdate;
+package org.bosiux.cookingupdate;
 
 import org.bukkit.plugin.java.JavaPlugin;
 
