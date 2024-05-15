@@ -3,3 +3,17 @@ version: '${project.version}'
 main: org.bosiux.cookingupdate.Main
 api-version: '1.20'
 authors: [bosiux]
+
+commands:
+  cooking:
+    usage: /cooking
+    description: cooking command
+    aliases: ck
+
+permissions:
+  cookingupdate.command.recipe.add:
+    description: Allow to add a new recipe
+    default: op
+  cookingupdate.command.recipe.list:
+    description: Allow to see recipes
+    default: not op
