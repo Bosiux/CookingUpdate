@@ -14,7 +14,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
 
+import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -33,13 +35,53 @@ public class CookingListener implements Listener {
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             while (processing) {
                 if (player.getOpenInventory().getTitle().equals(plugin.getConfig().getString("Cooking_GUI_NameTAG"))) {
-                    for (int slot : new int[]{14, 15, 16}) {
-                        ItemStack item = player.getOpenInventory().getItem(slot);
-                        if (item != null) {
-                            Material material = item.getType();
-                            player.sendMessage("Material: " + material.toString() + " - Amount: " + item.getAmount());
-                        }
+                    String[] list = new String[3];
+
+                    if (player.getOpenInventory().getItem(14) != null){
+                        list[0] = (player.getOpenInventory().getItem(14)).getType() + ":" + (player.getOpenInventory().getItem(14)).getAmount();
+                    } else {
+                        list[0] = "";
                     }
+                    if (player.getOpenInventory().getItem(15) != null){
+                        list[1] = (player.getOpenInventory().getItem(15)).getType() + ":" + (player.getOpenInventory().getItem(15)).getAmount();
+                    } else {
+                        list[1] = "";
+                    }
+                    if (player.getOpenInventory().getItem(16) != null){
+                        list[2] = (player.getOpenInventory().getItem(16)).getType() + ":" + (player.getOpenInventory().getItem(16)).getAmount();
+                    } else {
+                        list[2] = "";
+                    }
+
+                    try {
+
+                        String recipeResult = CraftingManager.getRecipe(list);
+
+                         if (recipeResult != null)
+                         {
+
+                             // TODO CHECK CARBURANTE
+
+                             String[] parts = recipeResult.split(":");
+                             if (parts.length == 2) {
+                                 String material = parts[0];
+                                 int amount = (int) Integer.parseInt(parts[1]);
+                                 ItemStack item = new ItemStack(Objects.requireNonNull(Material.getMaterial(material)));
+                                 item.setAmount(amount);
+                                 player.getOpenInventory().setItem(33, item);
+                             } else {
+                                 System.out.println("Invalid input format");
+                             }
+                         }
+
+                    } catch (IOException e) {
+                        plugin.getLogger().warning("[ERROR] -> data.json not found.");
+                        throw new RuntimeException(e);
+                    }
+
+
+
+
                 }
 
                 try {
@@ -53,10 +95,30 @@ public class CookingListener implements Listener {
     // 29 coal
 
 
+
+
+
     @EventHandler
     public void onInventoryClose(InventoryCloseEvent event) {
         if (event.getView().getTitle().equals(plugin.getConfig().getString("Cooking_GUI_NameTAG"))) {
             processing = false;
+        }
+    }
+
+
+    @EventHandler
+    public void onCookingInventoryClick(InventoryClickEvent event) {
+        if (!event.getView().getTitle().equals(plugin.getConfig().getString("Cooking_GUI_NameTAG"))) {
+            return;
+        }
+        Player player = (Player) event.getWhoClicked();
+        int slot = event.getRawSlot();
+        ItemStack air = new ItemStack(Material.AIR);
+
+        if (slot == 33) {
+            player.getOpenInventory().setItem(14, air);
+            player.getOpenInventory().setItem(15, air);
+            player.getOpenInventory().setItem(16, air);
         }
     }
 
@@ -143,11 +205,14 @@ public class CookingListener implements Listener {
         Player player = (Player) event.getWhoClicked();
         Inventory inventory = event.getClickedInventory();
 
+
         if (inventory == null) return;
         if (! event.getView().getTitle().equals(plugin.getConfig().getString("Cooking_Recipe_NameTAG"))){
             return;
         }
         int slot = event.getRawSlot();
+
+
         if (slot == 0 || slot == 4 || slot == 6 || slot == 7) {
             event.setCancelled(true);
             return;

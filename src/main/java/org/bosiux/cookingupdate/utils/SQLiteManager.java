@@ -4,10 +4,7 @@ import org.bosiux.cookingupdate.Main;
 import org.bukkit.plugin.Plugin;
 
 import java.io.File;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
 public class SQLiteManager {
     private static final Plugin plugin = Main.plugin;
@@ -15,7 +12,7 @@ public class SQLiteManager {
     private static final String DATABASE_NAME = "storage.db";
     private static final String TABLE_NAME = "data";
     private static final String CREATE_TABLE_QUERY = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" +
-            "uuid TEXT," +
+            "uuid TEXT UNIQUE," +
             "username TEXT," +
             "amount FLOAT," +
             "last_use INTEGER" +
@@ -41,9 +38,27 @@ public class SQLiteManager {
             e.printStackTrace();
         }
     }
+
+    public static boolean UUIDexist(String uuid) {
+        String query = "SELECT 1 FROM data WHERE uuid = ? LIMIT 1";
+
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+
+            pstmt.setString(1, uuid);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+
 }
 /*
-
+                        data
 +--------------+-------------+--------+--------------+
 |     uuid     |  username   | amount |  last_use    |
 +--------------+-------------+--------+--------------+

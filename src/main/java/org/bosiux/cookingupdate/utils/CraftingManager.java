@@ -1,19 +1,27 @@
 package org.bosiux.cookingupdate.utils;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
 import org.bosiux.cookingupdate.Main;
+import org.bukkit.inventory.Recipe;
 import org.bukkit.plugin.Plugin;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import javax.xml.crypto.Data;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.*;
 
 public class CraftingManager {
     private static final Plugin plugin = Main.plugin;
+    private static List<Map<String, Object>> recipes;
 
     public static void newCrafting(String[] ingredients, String result) {
 
@@ -59,5 +67,29 @@ public class CraftingManager {
             e.printStackTrace();
         }
     }
+    public static String getRecipe(String[] ingredients) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode rootNode = objectMapper.readTree( new File(plugin.getDataFolder(), "data.json"));
+
+        Set<String> ingredientSet = new HashSet<>(Arrays.asList(ingredients));
+
+        JsonNode recipesNode = rootNode.get("recipes");
+        for (JsonNode recipeNode : recipesNode) {
+            Set<String> recipeSet = new HashSet<>();
+            JsonNode craftingNode = recipeNode.get("crafting");
+            Iterator<JsonNode> elements = craftingNode.elements();
+            while (elements.hasNext()) {
+                recipeSet.add(elements.next().asText());
+            }
+
+            if (recipeSet.equals(ingredientSet)) {
+                return recipeNode.get("result").asText();
+            }
+        }
+        return null;
+    }
+
+
+
 
 }
