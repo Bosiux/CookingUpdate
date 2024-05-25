@@ -61,6 +61,40 @@ public class FuelManager {
         }
     }
 
+    public static Float getItemFuelValue(String itemName) {
+        try {
+            JSONParser parser = new JSONParser();
+            FileReader reader = new FileReader(file);
+            JSONObject jsonObject = (JSONObject) parser.parse(reader);
+            JSONObject players = (JSONObject) jsonObject.get("fuels");
+            if (players.containsKey(itemName)) {
+                return ((Number) players.get(itemName)).floatValue();
+            }
+        } catch (IOException | ParseException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static void setItemFuelValue(String itemName, float value) {
+        try {
+            JSONParser parser = new JSONParser();
+            FileReader reader = new FileReader(file);
+            JSONObject jsonObject = (JSONObject) parser.parse(reader);
+            reader.close();
+
+            JSONObject players = (JSONObject) jsonObject.get("fuels");
+            players.put(itemName, value);
+
+            FileWriter writer = new FileWriter(file);
+            writer.write(jsonObject.toJSONString());
+            writer.flush();
+            writer.close();
+        } catch (IOException | ParseException e) {
+            e.printStackTrace();
+        }
+    }
+
     public static void createPlayer(String username, float value) {
         try {
             JSONParser parser = new JSONParser();

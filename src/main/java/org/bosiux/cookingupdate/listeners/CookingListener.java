@@ -21,8 +21,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import static org.bosiux.cookingupdate.utils.CraftingManager.round;
-import static org.bosiux.cookingupdate.utils.FuelManager.getPlayerValue;
-import static org.bosiux.cookingupdate.utils.FuelManager.setPlayerValue;
+import static org.bosiux.cookingupdate.utils.FuelManager.*;
 
 public class CookingListener implements Listener {
     private static final Plugin plugin = Main.plugin;
@@ -57,6 +56,24 @@ public class CookingListener implements Listener {
                     } else {
                         list[2] = "";
                     }
+
+                    if (player.getOpenInventory().getItem(29) != null){
+                        ItemStack item = player.getOpenInventory().getItem(29);
+                        if (item.getType() != Material.AIR) {
+                            Float n = getItemFuelValue(String.valueOf(item.getType()));
+                            if (n != null){
+                                ItemStack air = new ItemStack(Material.AIR);
+                                int amount = item.getAmount();
+                                player.getOpenInventory().setItem(29, air);
+                                for (int i = 0; i < amount ; i++){
+                                    setPlayerValue(player.getName(), getPlayerValue(player.getName()) + n);
+                                }
+
+
+                            }
+                        }
+                    }
+
 
                     try {
                         Map<String, Float> res = CraftingManager.getRecipe(list);
