@@ -2,28 +2,25 @@ package org.bosiux.cookingupdate.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.reflect.TypeToken;
-import com.google.gson.Gson;
 import org.bosiux.cookingupdate.Main;
-import org.bukkit.inventory.Recipe;
 import org.bukkit.plugin.Plugin;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import javax.xml.crypto.Data;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 
 public class CraftingManager {
     private static final Plugin plugin = Main.plugin;
-    private static List<Map<String, Object>> recipes;
 
-    public static void newCrafting(String[] ingredients, String result) {
+    public static void newCrafting(String[] ingredients, String result, float fuel) {
 
         JSONObject jsonData = readData();
 
@@ -34,6 +31,7 @@ public class CraftingManager {
         }
         newRecipe.put("crafting", craftingArray);
         newRecipe.put("result", result);
+        newRecipe.put("fuel", fuel);
 
         JSONArray recipes = (JSONArray) jsonData.get("recipes");
         recipes.add(newRecipe);
@@ -67,9 +65,9 @@ public class CraftingManager {
             e.printStackTrace();
         }
     }
-    public static String getRecipe(String[] ingredients) throws IOException {
+    public static Map<String, Float> getRecipe(String[] ingredients) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode rootNode = objectMapper.readTree( new File(plugin.getDataFolder(), "data.json"));
+        JsonNode rootNode = objectMapper.readTree(new File(plugin.getDataFolder(), "data.json"));
 
         Set<String> ingredientSet = new HashSet<>(Arrays.asList(ingredients));
 
@@ -77,18 +75,27 @@ public class CraftingManager {
         for (JsonNode recipeNode : recipesNode) {
             Set<String> recipeSet = new HashSet<>();
             JsonNode craftingNode = recipeNode.get("crafting");
+
             Iterator<JsonNode> elements = craftingNode.elements();
             while (elements.hasNext()) {
                 recipeSet.add(elements.next().asText());
             }
 
             if (recipeSet.equals(ingredientSet)) {
-                return recipeNode.get("result").asText();
+                String result = recipeNode.get("result").asText();
+                float fuel = recipeNode.get("fuel").floatValue();
+                return Map.of(result, fuel);
             }
         }
         return null;
     }
 
+
+    public static float round(float value) {
+        BigDecimal bd = new BigDecimal(Float.toString(value));
+        bd = bd.setScale(2, RoundingMode.HALF_UP);
+        return bd.floatValue();
+    }
 
 
 

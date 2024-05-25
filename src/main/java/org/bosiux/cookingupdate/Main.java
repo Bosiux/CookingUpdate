@@ -2,12 +2,12 @@ package org.bosiux.cookingupdate;
 
 import org.bosiux.cookingupdate.executors.CookingCommand;
 import org.bosiux.cookingupdate.listeners.CookingListener;
-import org.bosiux.cookingupdate.utils.SQLiteManager;
+import org.bosiux.cookingupdate.listeners.onJoinListener;
+import org.bosiux.cookingupdate.utils.FuelManager;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import java.io.*;
 
-import static org.bosiux.cookingupdate.utils.SQLiteManager.createTable;
 
 public final class Main extends JavaPlugin {
     public static Plugin plugin;
@@ -20,11 +20,14 @@ public final class Main extends JavaPlugin {
 
         copyResource("data.json");
         copyResource("config.yml");
+        copyResource("storage.json");
+
+        FuelManager.file = new File(getDataFolder(), "storage.json");
 
 
-        SQLiteManager.createTable();
 
         getServer().getPluginManager().registerEvents(new CookingListener(), this);
+        getServer().getPluginManager().registerEvents(new onJoinListener(), this);
 
         getCommand("cooking").setExecutor(new CookingCommand());
 

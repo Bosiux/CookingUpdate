@@ -3,6 +3,7 @@ package org.bosiux.cookingupdate.listeners;
 import org.bosiux.cookingupdate.Main;
 import org.bosiux.cookingupdate.utils.CraftingManager;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -16,13 +17,17 @@ import org.bukkit.plugin.Plugin;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+
+import static org.bosiux.cookingupdate.utils.CraftingManager.round;
+import static org.bosiux.cookingupdate.utils.FuelManager.getPlayerValue;
+import static org.bosiux.cookingupdate.utils.FuelManager.setPlayerValue;
 
 public class CookingListener implements Listener {
     private static final Plugin plugin = Main.plugin;
     private static boolean processing = false;
+    private static Float Vfuel = null;
 
     public static void openGUI(Player player) {
         Inventory gui = Bukkit.createInventory(null, 45, plugin.getConfig().getString("Cooking_GUI_NameTAG"));
@@ -54,13 +59,23 @@ public class CookingListener implements Listener {
                     }
 
                     try {
-
-                        String recipeResult = CraftingManager.getRecipe(list);
+                        Map<String, Float> res = CraftingManager.getRecipe(list);
+                        if (res == null){
+                            continue;
+                        }
+                        String recipeResult = res.keySet().iterator().next();
+                        float fuelValue = res.get(recipeResult);
+                        Vfuel = fuelValue;
 
                          if (recipeResult != null)
                          {
 
-                             // TODO CHECK CARBURANTE
+
+                             if (getPlayerValue(player.getName()) < fuelValue) {
+                                 continue;
+                             }
+
+
 
                              String[] parts = recipeResult.split(":");
                              if (parts.length == 2) {
@@ -115,7 +130,10 @@ public class CookingListener implements Listener {
         int slot = event.getRawSlot();
         ItemStack air = new ItemStack(Material.AIR);
 
+
         if (slot == 33) {
+            Float fuel = getPlayerValue(player.getName());
+            setPlayerValue(player.getName(), fuel - Vfuel);
             player.getOpenInventory().setItem(14, air);
             player.getOpenInventory().setItem(15, air);
             player.getOpenInventory().setItem(16, air);
@@ -187,6 +205,12 @@ public class CookingListener implements Listener {
         block.setItemMeta(meta);
 
         recipeGUI.setItem(6, block);
+
+
+        block = new ItemStack( Material.GUNPOWDER );
+        meta = block.getItemMeta();
+        meta.setDisplayName(ChatColor.GREEN + "1.00");
+        block.setItemMeta(meta);
         recipeGUI.setItem(7, block);
 
 
@@ -213,19 +237,42 @@ public class CookingListener implements Listener {
         int slot = event.getRawSlot();
 
 
-        if (slot == 0 || slot == 4 || slot == 6 || slot == 7) {
+        if (slot == 0 || slot == 4 || slot == 6) {
             event.setCancelled(true);
             return;
+        }
+
+        if (slot == 7) {
+            event.setCancelled(true);
+            ItemStack block = inventory.getItem(7);
+            ItemMeta meta;
+            String name = block.getItemMeta().getDisplayName();
+
+            String num = name.substring(2);
+
+            float value = Float.parseFloat(num);
+            value += 0.1F;
+            value = round(value);
+
+            meta = block.getItemMeta();
+            meta.setDisplayName(ChatColor.GREEN + String.valueOf(value));
+            block.setItemMeta(meta);
+            inventory.setItem(7, block);
         }
 
         if (slot == 8) {
             event.setCancelled(true);
             player.closeInventory();
-            saveAndPrint(player, inventory);
+
+            ItemStack block = inventory.getItem(7);
+            String name = block.getItemMeta().getDisplayName();
+            String num = name.substring(2);
+            float value = Float.parseFloat(num);
+            saveAndPrint(inventory, round(value));
         }
     }
 
-    private void saveAndPrint(Player player, Inventory inventory) {
+    private void saveAndPrint(Inventory inventory, float value) {
         Map<Material, Integer> items = new HashMap<>();
         String[] ingredients = new String[3];
         String result = "";
@@ -257,11 +304,7 @@ public class CookingListener implements Listener {
         }
 
 
-
-
-
-
-        CraftingManager.newCrafting(ingredients, result);
+        CraftingManager.newCrafting(ingredients, result, value);
 
     }
 
