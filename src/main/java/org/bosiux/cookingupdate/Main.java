@@ -8,6 +8,9 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import java.io.*;
 
+import static org.bosiux.cookingupdate.utils.Variables.getCredits;
+import static org.bosiux.cookingupdate.utils.Variables.getTitle;
+
 
 public final class Main extends JavaPlugin {
     public static Plugin plugin;
@@ -15,6 +18,8 @@ public final class Main extends JavaPlugin {
     @Override
     public void onEnable() {
         plugin = this;
+
+        getLogger().info(getTitle());
 
         createPluginFolder();
 

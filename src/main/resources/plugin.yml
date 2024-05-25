@@ -17,3 +17,6 @@ permissions:
   cookingupdate.command.recipe.list:
     description: Allow to see recipes
     default: not op
+  cookingupdate.command.item.fuel:
+    description: Allow to set item fuel value
+    default: op

@@ -5,3 +5,5 @@ Cooking_Recipe_NameTAG: "Recipe GUI"
 
 
 DEFAULT_FUEL: 100.00
+
+NO_PERMISSION: "U dont have the right permission to execute this command"
